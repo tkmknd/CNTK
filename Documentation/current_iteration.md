@@ -31,9 +31,42 @@ We have added HTML versions of the tutorials and manuals with the Python documen
 ### Object detection demo script that allows to choose different detectors, base models and data sets
 ### New example for natural language processing (NLP) 
 ### Semantic segmentation (stretch goal) 
+### New C++ Eval Examples
+The C++ examples [`CNTKLibraryCPPEvalCPUOnlyExamples`](https://github.com/Microsoft/CNTK/tree/release/2.2/Examples/Evaluation/CNTKLibraryCPPEvalCPUOnlyExamples) and [`CNTKLibraryCPPEvalGPUExamples`](https://github.com/Microsoft/CNTK/tree/release/2.2/Examples/Evaluation/CNTKLibraryCPPEvalGPUExamples) illustrate how to use C++ CNTK Library for model evaluation on CPU and GPU. The [UWPImageRecognition](https://github.com/Microsoft/CNTK/tree/release/2.2/Examples/Evaluation/UWPImageRecognition) contains an example using CNTK UWP library for model evaluation.
+### Add new C# Eval examples
+  * asynchronous evaluation:  [`EvaluationSingleImageAsync()`](https://github.com/Microsoft/CNTK/tree/release/2.2/Examples/Evaluation/CNTKLibraryCSEvalCPUOnlyExamples/CNTKLibraryCSEvalExamples.cs),
+  * evaluating intermediate layers: [`EvaluateIntermediateLayer()`](https://github.com/Microsoft/CNTK/tree/release/2.2/Examples/Evaluation/CNTKLibraryCSEvalCPUOnlyExamples/CNTKLibraryCSEvalExamples.cs),
+  * evaluating outputs from multiple nodes: [`EvaluateCombinedOutputs()`](https://github.com/Microsoft/CNTK/tree/release/2.2/Examples/Evaluation/CNTKLibraryCSEvalCPUOnlyExamples/CNTKLibraryCSEvalExamples.cs).
 
 ## Operations
-### Noise contrastive estimation node 
+### Noise contrastive estimation node
+
+This provides a built-in efficient (but approximate) loss function used to train networks when the 
+number of classes is very large. For example you can use it when you want to predict the next word 
+out of a vocabulary of tens or hundreds of thousands of words.
+
+To use it define your loss as 
+```python
+loss = nce_loss(weights, biases, inputs, labels, noise_distribution)
+```
+and once you are done training you can make predictions like this
+```python
+logits = C.times(weights, C.reshape(inputs, (1,), 1)) + biases
+```
+Note that the noise contrastive estimation loss cannot help with 
+reducing inference costs; the cost savings are only during training.
+
+### Improved AttentionModel
+
+A bug in our AttentionModel layer has been fixed and we now faithfully implement the paper
+
+> Neural Machine Translation by Jointly Learning to Align and Translate (Bahdanau et. al.)
+
+Furthermore, the arguments `attention_span` and `attention_axis` of the AttentionModel
+have been **deprecated**. They should be left to their default values, in which case the attention is computed over the whole sequence
+and the output is a sequence of vectors of the same dimension as the first argument over the axis of the second argument.
+This also leads to substantial speed gains (our CNTK 204 Tutorial now runs more than 2x faster). 
+
 ### Aggregation on sparse gradient for embedded layer
 #### This change saves costly conversion from sparse to dense before gradient aggregation when embedding vocabulary size is huge.
 #### It is currently enabled for GPU build when training on GPU with non-quantized data parallel SGD. For other distributed learners and CPU build, it is disabled by default.
