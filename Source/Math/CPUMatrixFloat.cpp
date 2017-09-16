@@ -7,7 +7,7 @@
 
 namespace Microsoft { namespace MSR { namespace CNTK {
 
-    int MATH_API TracingGPUMemoryAllocator::m_traceLevel = 0;
+    int MATH_API TracingGPUMemoryAllocator::m_traceLevel = 1;
 
     void TracingGPUMemoryAllocator::SetTraceLevel(int traceLevel)
     {
