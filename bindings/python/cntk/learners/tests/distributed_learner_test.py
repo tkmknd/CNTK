@@ -30,7 +30,8 @@ def mpiexec_execute(script, mpiexec_params, params, timeout_seconds=TIMEOUT_SECO
     str_out = out.decode(sys.getdefaultencoding())
     return str_out
 
-BlockMomentumConfig = collections.namedtuple('BlockMomentumConfig', 'block_momentum_as_time_constant block_learning_rate block_size distributed_after')    
+BlockMomentumConfig = collections.namedtuple('BlockMomentumConfig', 'block_momentum_as_time_constant block_learning_rate block_size distributed_after')
+DataParallelConfig = collections.namedtuple('DataParallelConfig', 'num_quantization_bits distributed_after')
     
 class SimpleTrainer:
     def __init__(self, mode, config):
@@ -53,7 +54,9 @@ class SimpleTrainer:
         local_learner = C.sgd(self.z.parameters, C.learning_rate_schedule(0.01, unit=C.learners.UnitType.sample))
         try:
             if mode == 'data_parallel':
-                learner = C.data_parallel_distributed_learner(local_learner)
+                if config is None:
+                    config = DataParallelConfig(num_quantization_bits=32, distributed_after=0)
+                learner = C.data_parallel_distributed_learner(local_learner, num_quantization_bits=config.num_quantization_bits, distributed_after=config.distributed_after)
             elif mode == 'block_momentum':
                 if config is None:
                     # the default config to match data parallel SGD
@@ -99,6 +102,7 @@ TRAINING_SETTINGS = [
     ('data_parallel', None),
     ('block_momentum', None),
     ('block_momentum', BlockMomentumConfig(block_momentum_as_time_constant=4000, block_learning_rate=2, block_size=NUM_WORKERS*BATCH_SIZE_PER_WORKER*3, distributed_after=NUM_WORKERS*BATCH_SIZE_PER_WORKER*2)),
+    ('data_parallel', DataParallelConfig(num_quantization_bits=1, distributed_after=0)),
 ]
 
 @pytest.mark.parametrize("mode, config", TRAINING_SETTINGS)
@@ -106,7 +110,7 @@ def test_distributed_training_accuracy(tmpdir, device_id, mode, config):
     ref_trainer = SimpleTrainer(None, None)
 
     # test if mode is available
-    if not ref_trainer.create_distributed_learner(mode, None):
+    if not ref_trainer.create_distributed_learner(mode, config):
         pytest.skip("unsupported distributed learner mode")
 
     # run distributed training and check if all workers get the same model
