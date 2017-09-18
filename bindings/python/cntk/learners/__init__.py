@@ -574,6 +574,7 @@ def sgd(parameters, lr,
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
@@ -642,6 +643,7 @@ def momentum_sgd(parameters, lr, momentum, unit_gain=default_unit_gain_value(),
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
@@ -709,6 +711,7 @@ def nesterov(parameters, lr, momentum, unit_gain=default_unit_gain_value(),
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
@@ -781,6 +784,7 @@ def adadelta(parameters, lr=learning_rate_schedule(1, UnitType.sample), rho=0.95
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
@@ -847,6 +851,7 @@ def adagrad(parameters, lr, need_ave_multiplier=True,
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
@@ -920,6 +925,7 @@ def fsadagrad(parameters, lr, momentum, unit_gain=default_unit_gain_value(),
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
@@ -994,6 +1000,7 @@ def adam(parameters, lr, momentum, unit_gain=default_unit_gain_value(),
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         epsilon (float, optional): numerical stability constant,
@@ -1075,6 +1082,7 @@ def rmsprop(parameters, lr,
         gradient_clipping_with_truncation (bool, default ``True``): use gradient clipping
          with truncation
         use_mean_gradient (bool, optional): use averaged gradient as input to learner.
+
             deprecated:: 2.2
                 Use minibatch_size parameter to specify the reference minibatch size.
         minibatch_size (int, default ``None``): The minibatch size that the learner's parameters are designed or pre-tuned for. This
