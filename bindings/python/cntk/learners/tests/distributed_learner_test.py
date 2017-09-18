@@ -102,7 +102,7 @@ TRAINING_SETTINGS = [
     ('data_parallel', None),
     ('block_momentum', None),
     ('block_momentum', BlockMomentumConfig(block_momentum_as_time_constant=4000, block_learning_rate=2, block_size=NUM_WORKERS*BATCH_SIZE_PER_WORKER*3, distributed_after=NUM_WORKERS*BATCH_SIZE_PER_WORKER*2)),
-    ('data_parallel', DataParallelConfig(num_quantization_bits=1, distributed_after=0)),
+    ('data_parallel', DataParallelConfig(num_quantization_bits=1, distributed_after=NUM_WORKERS*BATCH_SIZE_PER_WORKER*2)),
 ]
 
 @pytest.mark.parametrize("mode, config", TRAINING_SETTINGS)
