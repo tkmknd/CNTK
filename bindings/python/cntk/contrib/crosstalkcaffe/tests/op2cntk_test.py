@@ -87,60 +87,61 @@ def test_conv_setup(op_type, parameters, weights, input_data, expected_out):
     layer = getattr(ApiSetup, utils.format.camel_to_snake(op_type))(layer_def, input_variants)
     _layer_eq(layer, inputs, outputs)
 
-# API_SETUP_POOLING_DATA = [
-#     # The test cases of pool ops
-#     (
-#         'Pooling',
-#         {
-#             'stride': [2, 2],
-#             'kernel': [2, 2],
-#             'auto_pad': False,
-#             'pooling_type': 0
-#         },
-#         [
-#             [[[1., 2., 3., 4.],
-#               [5., 6., 7., 8.],
-#               [9., 10., 11., 12.],
-#               [13., 14., 15., 16.]]]
-#         ],
-#         [
-#             [[[[6., 8.],
-#                [14., 16.]]]]
-#         ]
-#     ),
-#     (
-#         'Pooling',
-#         {
-#             'stride': [2, 2],
-#             'kernel': [3, 3],
-#             'auto_pad': True,
-#             'pooling_type': 1
-#         },
-#         [
-#             [[[1., 2., 3., 4.],
-#               [5., 6., 7., 8.],
-#               [9., 10., 11., 12.],
-#               [13., 14., 15., 16.]]]
-#         ],
-#         [
-#             [[[[3.5, 5., 6.],
-#                [9.5, 11., 12.],
-#                [13.5, 15, 16.]]]]
-#         ]
-#     )
-# ]
+
+API_SETUP_POOLING_DATA = [
+    # The test cases of pool ops
+    (
+        'Pooling',
+        {
+            'stride': [2, 2],
+            'kernel': [2, 2],
+            'auto_pad': False,
+            'pooling_type': 0
+        },
+        [
+            [[[1., 2., 3., 4.],
+              [5., 6., 7., 8.],
+              [9., 10., 11., 12.],
+              [13., 14., 15., 16.]]]
+        ],
+        [
+            [[[[6., 8.],
+               [14., 16.]]]]
+        ]
+    ),
+    (
+        'Pooling',
+        {
+            'stride': [2, 2],
+            'kernel': [3, 3],
+            'auto_pad': True,
+            'pooling_type': 1
+        },
+        [
+            [[[1., 2., 3., 4.],
+              [5., 6., 7., 8.],
+              [9., 10., 11., 12.],
+              [13., 14., 15., 16.]]]
+        ],
+        [
+           [[[[14. / 9., 30. / 9., 2.],
+               [57. / 9., 11., 6.],
+               [4.5, 7.5, 4.]]]]
+        ]
+    )
+]
 
 
-# @pytest.mark.parametrize("op_type, parameters, input_data, expected_out", API_SETUP_POOLING_DATA)
-# def test_pooling_setup(op_type, parameters, input_data, expected_out):
-#     """
-#     The function to test pooling api setup
-#     """
-#     inputs = [np.array(item, dtype=np.float32) for item in input_data]
-#     outputs = [np.array(item, dtype=np.float32) for item in expected_out]
-#     layer_def, input_variants = _install_test_layer(op_type, parameters, None, inputs)
-#     layer = getattr(ApiSetup, utils.format.camel_to_snake(op_type))(layer_def, input_variants)
-#     _layer_eq(layer, inputs, outputs)
+@pytest.mark.parametrize("op_type, parameters, input_data, expected_out", API_SETUP_POOLING_DATA)
+def test_pooling_setup(op_type, parameters, input_data, expected_out):
+    """
+    The function to test pooling api setup
+    """
+    inputs = [np.array(item, dtype=np.float32) for item in input_data]
+    outputs = [np.array(item, dtype=np.float32) for item in expected_out]
+    layer_def, input_variants = _install_test_layer(op_type, parameters, None, inputs)
+    layer = getattr(ApiSetup, utils.format.camel_to_snake(op_type))(layer_def, input_variants)
+    _layer_eq(layer, inputs, outputs)
 
 API_SETUP_BN_DATA = [
     (
