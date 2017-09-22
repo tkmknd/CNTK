@@ -441,7 +441,7 @@ __global__ void kMaxUnpooling(int batchSize, const int* mpRowCol, const int* mpR
 template <typename ElemType>
 __global__ void kAveragePoolingForward(int batchSize, const int* mpRowCol, const int* mpRowIndices, const int* indices,
                                        const ElemType* __restrict__ src, int srcVecSize,
-                                       ElemType* dst, int dstVecSize)
+                                       ElemType* dst, int dstVecSize, bool poolIncludePad)
 {
     int row = blockIdx.x * blockDim.x + threadIdx.x;
     if (row >= dstVecSize)
@@ -464,6 +464,10 @@ __global__ void kAveragePoolingForward(int batchSize, const int* mpRowCol, const
             assert(0 <= colBase + dcol && colBase + dcol < srcVecSize);
             sum += src[colBase + dcol];
         }
+        if (poolIncludePad)
+        {
+            size = indices[0];
+        }
         dst[row] = sum / size;
 
         src += blockDim.y * srcVecSize;
@@ -474,7 +478,7 @@ __global__ void kAveragePoolingForward(int batchSize, const int* mpRowCol, const
 template <typename ElemType>
 __global__ void kAveragePoolingBackward(int batchSize, const int* mpRowCol, const int* mpRowIndices, const int* indices,
                                         const ElemType* __restrict__ srcGrad, int srcVecSize,
-                                        ElemType* grad, int dstVecSize)
+                                        ElemType* grad, int dstVecSize, bool poolIncludePad)
 {
     int row = blockIdx.x * blockDim.x + threadIdx.x;
     if (row >= srcVecSize)
@@ -490,8 +494,12 @@ __global__ void kAveragePoolingBackward(int batchSize, const int* mpRowCol, cons
 
         int i0 = mpRowIndices[row];
         int size = indices[i0++];
+        int tmp = size;
+        if (poolIncludePad)
+            size = indices[0];
         assert(size > 0);
         ElemType g = srcGrad[row] / size;
+        size = tmp;
         for (int i = 0; i < size; i++)
         {
             int dcol = indices[i0 + i];

@@ -518,8 +518,8 @@ public:
                                const size_t pooledWidth, const size_t pooledHeight, const GPUMatrix<ElemType>& roiData, GPUMatrix<ElemType>& grad, 
                                GPUMatrix<ElemType>& argmax, double spatialScale) const;
 
-    void AveragePoolingForward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& output) const;
-    void AveragePoolingBackward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& grad, bool accumulateGradient) const;
+    void AveragePoolingForward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& output, bool poolIncludepad) const;
+    void AveragePoolingBackward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& grad, bool poolIncludePad, bool accumulateGradient) const;
 
     void BatchNormalizationForward(const GPUMatrix<ElemType>& scale, const GPUMatrix<ElemType>& bias, bool inferenceOnly, double expAvgFactor, double blendFactor,
                                    GPUMatrix<ElemType>& runMean, GPUMatrix<ElemType>& runVariance, GPUMatrix<ElemType>& out, double epsilon,

@@ -3405,18 +3405,18 @@ void GPUMatrix<ElemType>::MaxUnpooling(const GPUMatrix<int>& mpRowCol, const GPU
 }
 
 template <class ElemType>
-void GPUMatrix<ElemType>::AveragePoolingForward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& output) const
+void GPUMatrix<ElemType>::AveragePoolingForward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& output, bool poolIncludePad) const
 {
     const int BlockSize = 128;
     auto gdim = dim3((output.GetNumRows() + BlockSize - 1)/ BlockSize, std::min((int)GetNumCols(), 65535));
     PrepareDevice();
     SyncGuard syncGuard;
     kAveragePoolingForward<<<gdim, BlockSize, 0, t_stream>>>((int)GetNumCols(), mpRowCol.Data(), mpRowIndices.Data(), indices.Data(),
-                                                               Data(), (int)GetNumRows(), output.Data(), (int)output.GetNumRows());
+                                                               Data(), (int)GetNumRows(), output.Data(), (int)output.GetNumRows(), poolIncludePad);
 }
 
 template <class ElemType>
-void GPUMatrix<ElemType>::AveragePoolingBackward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& grad, bool accumulateGradient) const
+void GPUMatrix<ElemType>::AveragePoolingBackward(const GPUMatrix<int>& mpRowCol, const GPUMatrix<int>& mpRowIndices, const GPUMatrix<int>& indices, GPUMatrix<ElemType>& grad, bool accumulateGradient, bool poolIncludePad) const
 {
     const int BlockSize = 128;
     auto gdim = dim3((GetNumRows() + BlockSize - 1)/ BlockSize, std::min((int)GetNumCols(), 65535));
@@ -3427,7 +3427,7 @@ void GPUMatrix<ElemType>::AveragePoolingBackward(const GPUMatrix<int>& mpRowCol,
 
     SyncGuard syncGuard;
     kAveragePoolingBackward<<<gdim, BlockSize, 0, t_stream>>>((int)GetNumCols(), mpRowCol.Data(), mpRowIndices.Data(), indices.Data(),
-                                                                Data(), (int)GetNumRows(), grad.Data(), (int)grad.GetNumRows());
+                                                                Data(), (int)GetNumRows(), grad.Data(), (int)grad.GetNumRows(), poolIncludePad);
 }
 
 // returns savedMean/savedInvStdDev which are the actual values used to perform the normalization, except for blendFactor 1, in which case they are unused and set to empty
