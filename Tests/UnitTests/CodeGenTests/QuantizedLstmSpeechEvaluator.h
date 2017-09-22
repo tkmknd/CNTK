@@ -121,7 +121,7 @@ const std::vector<float> get_constant62() const { return m_Constant62; }
 void set_constant62(const std::vector<float>&& v) { m_Constant62 = std::move(v); };
 const std::vector<float> get_constant61() const { return m_Constant61; }
 void set_constant61(const std::vector<float>&& v) { m_Constant61 = std::move(v); };
-Halide::Pipeline create_eval_graph(const Halide::ImageParam& features, const Halide::ImageParam& PastValue112, const Halide::ImageParam& PastValue198, const Halide::ImageParam& PastValue228, const Halide::ImageParam& PastValue314, const Halide::ImageParam& PastValue344, const Halide::ImageParam& PastValue430, const Halide::ImageParam& PastValue460, const Halide::ImageParam& PastValue82)
+Halide::Pipeline create_eval_graph(const Halide::ImageParam& features, const Halide::ImageParam& OutputPastValue112, const Halide::ImageParam& OutputPastValue198, const Halide::ImageParam& OutputPastValue228, const Halide::ImageParam& OutputPastValue314, const Halide::ImageParam& OutputPastValue344, const Halide::ImageParam& OutputPastValue430, const Halide::ImageParam& OutputPastValue460, const Halide::ImageParam& OutputPastValue82)
  {
  Halide::Var var1, var2; 
  auto b_Constant555 = Halide::Buffer<float>(m_Constant555.data(), 9404, "Constant555");
@@ -167,12 +167,12 @@ Halide::Func Parameter469("Parameter469"); Parameter469(var1) = b_Parameter469(v
 auto b_Constant459 = Halide::Buffer<float>(m_Constant459.data(), 1, "Constant459");
 Halide::Func Constant459("Constant459"); Constant459(var1) = b_Constant459(var1);
 
-Halide::Func PastValue460_Constant459("PastValue460_Constant459"); PastValue460_Constant459(var1) = Halide::select(m_timestamp(0) < 1, Constant459(0), PastValue460(var1));;
-Halide::Func ElementTimes489("ElementTimes489"); ElementTimes489 = ElementTimes(Parameter488, PastValue460_Constant459, 1024);
+Halide::Func PastValue460("PastValue460"); PastValue460(var1) = Halide::select(m_timestamp(0) < 1, Constant459(0), OutputPastValue460(var1));;
+Halide::Func ElementTimes489("ElementTimes489"); ElementTimes489 = ElementTimes(Parameter488, PastValue460, 1024);
 auto b_Parameter457 = Halide::Buffer<float>(m_Parameter457.data(), 1024, "Parameter457");
 Halide::Func Parameter457("Parameter457"); Parameter457(var1) = b_Parameter457(var1);
 
-Halide::Func ElementTimes463("ElementTimes463"); ElementTimes463 = ElementTimes(Parameter457, PastValue460_Constant459, 1024);
+Halide::Func ElementTimes463("ElementTimes463"); ElementTimes463 = ElementTimes(Parameter457, PastValue460, 1024);
 auto b_Parameter446 = Halide::Buffer<float>(m_Parameter446.data(), 1024, "Parameter446");
 Halide::Func Parameter446("Parameter446"); Parameter446(var1) = b_Parameter446(var1);
 
@@ -191,7 +191,7 @@ std::vector<Halide::Func> Parameter19 { f_Parameter19, f_step_Parameter19 };
 auto b_Constant429 = Halide::Buffer<float>(m_Constant429.data(), 1, "Constant429");
 Halide::Func Constant429("Constant429"); Constant429(var1) = b_Constant429(var1);
 
-Halide::Func PastValue430_Constant429("PastValue430_Constant429"); PastValue430_Constant429(var1) = Halide::select(m_timestamp(0) < 1, Constant429(0), PastValue430(var1));;
+Halide::Func PastValue430("PastValue430"); PastValue430(var1) = Halide::select(m_timestamp(0) < 1, Constant429(0), OutputPastValue430(var1));;
 auto b_Parameter22 = Halide::Buffer<short>(m_Parameter22.data(), 1024, 512, "Parameter22");
 Halide::Func f_Parameter22("f_Parameter22"); f_Parameter22(var1, var2) = b_Parameter22(var1, var2);
 Halide::Func f_step_Parameter22("f_step_Parameter22"); f_step_Parameter22() = m_step_Parameter22;
@@ -216,12 +216,12 @@ Halide::Func Parameter353("Parameter353"); Parameter353(var1) = b_Parameter353(v
 auto b_Constant343 = Halide::Buffer<float>(m_Constant343.data(), 1, "Constant343");
 Halide::Func Constant343("Constant343"); Constant343(var1) = b_Constant343(var1);
 
-Halide::Func PastValue344_Constant343("PastValue344_Constant343"); PastValue344_Constant343(var1) = Halide::select(m_timestamp(0) < 1, Constant343(0), PastValue344(var1));;
-Halide::Func ElementTimes373("ElementTimes373"); ElementTimes373 = ElementTimes(Parameter372, PastValue344_Constant343, 1024);
+Halide::Func PastValue344("PastValue344"); PastValue344(var1) = Halide::select(m_timestamp(0) < 1, Constant343(0), OutputPastValue344(var1));;
+Halide::Func ElementTimes373("ElementTimes373"); ElementTimes373 = ElementTimes(Parameter372, PastValue344, 1024);
 auto b_Parameter341 = Halide::Buffer<float>(m_Parameter341.data(), 1024, "Parameter341");
 Halide::Func Parameter341("Parameter341"); Parameter341(var1) = b_Parameter341(var1);
 
-Halide::Func ElementTimes347("ElementTimes347"); ElementTimes347 = ElementTimes(Parameter341, PastValue344_Constant343, 1024);
+Halide::Func ElementTimes347("ElementTimes347"); ElementTimes347 = ElementTimes(Parameter341, PastValue344, 1024);
 auto b_Parameter330 = Halide::Buffer<float>(m_Parameter330.data(), 1024, "Parameter330");
 Halide::Func Parameter330("Parameter330"); Parameter330(var1) = b_Parameter330(var1);
 
@@ -240,7 +240,7 @@ std::vector<Halide::Func> Parameter31 { f_Parameter31, f_step_Parameter31 };
 auto b_Constant313 = Halide::Buffer<float>(m_Constant313.data(), 1, "Constant313");
 Halide::Func Constant313("Constant313"); Constant313(var1) = b_Constant313(var1);
 
-Halide::Func PastValue314_Constant313("PastValue314_Constant313"); PastValue314_Constant313(var1) = Halide::select(m_timestamp(0) < 1, Constant313(0), PastValue314(var1));;
+Halide::Func PastValue314("PastValue314"); PastValue314(var1) = Halide::select(m_timestamp(0) < 1, Constant313(0), OutputPastValue314(var1));;
 auto b_Parameter34 = Halide::Buffer<short>(m_Parameter34.data(), 1024, 512, "Parameter34");
 Halide::Func f_Parameter34("f_Parameter34"); f_Parameter34(var1, var2) = b_Parameter34(var1, var2);
 Halide::Func f_step_Parameter34("f_step_Parameter34"); f_step_Parameter34() = m_step_Parameter34;
@@ -265,12 +265,12 @@ Halide::Func Parameter237("Parameter237"); Parameter237(var1) = b_Parameter237(v
 auto b_Constant227 = Halide::Buffer<float>(m_Constant227.data(), 1, "Constant227");
 Halide::Func Constant227("Constant227"); Constant227(var1) = b_Constant227(var1);
 
-Halide::Func PastValue228_Constant227("PastValue228_Constant227"); PastValue228_Constant227(var1) = Halide::select(m_timestamp(0) < 1, Constant227(0), PastValue228(var1));;
-Halide::Func ElementTimes257("ElementTimes257"); ElementTimes257 = ElementTimes(Parameter256, PastValue228_Constant227, 1024);
+Halide::Func PastValue228("PastValue228"); PastValue228(var1) = Halide::select(m_timestamp(0) < 1, Constant227(0), OutputPastValue228(var1));;
+Halide::Func ElementTimes257("ElementTimes257"); ElementTimes257 = ElementTimes(Parameter256, PastValue228, 1024);
 auto b_Parameter225 = Halide::Buffer<float>(m_Parameter225.data(), 1024, "Parameter225");
 Halide::Func Parameter225("Parameter225"); Parameter225(var1) = b_Parameter225(var1);
 
-Halide::Func ElementTimes231("ElementTimes231"); ElementTimes231 = ElementTimes(Parameter225, PastValue228_Constant227, 1024);
+Halide::Func ElementTimes231("ElementTimes231"); ElementTimes231 = ElementTimes(Parameter225, PastValue228, 1024);
 auto b_Parameter214 = Halide::Buffer<float>(m_Parameter214.data(), 1024, "Parameter214");
 Halide::Func Parameter214("Parameter214"); Parameter214(var1) = b_Parameter214(var1);
 
@@ -289,7 +289,7 @@ std::vector<Halide::Func> Parameter43 { f_Parameter43, f_step_Parameter43 };
 auto b_Constant197 = Halide::Buffer<float>(m_Constant197.data(), 1, "Constant197");
 Halide::Func Constant197("Constant197"); Constant197(var1) = b_Constant197(var1);
 
-Halide::Func PastValue198_Constant197("PastValue198_Constant197"); PastValue198_Constant197(var1) = Halide::select(m_timestamp(0) < 1, Constant197(0), PastValue198(var1));;
+Halide::Func PastValue198("PastValue198"); PastValue198(var1) = Halide::select(m_timestamp(0) < 1, Constant197(0), OutputPastValue198(var1));;
 auto b_Parameter46 = Halide::Buffer<short>(m_Parameter46.data(), 1024, 512, "Parameter46");
 Halide::Func f_Parameter46("f_Parameter46"); f_Parameter46(var1, var2) = b_Parameter46(var1, var2);
 Halide::Func f_step_Parameter46("f_step_Parameter46"); f_step_Parameter46() = m_step_Parameter46;
@@ -314,12 +314,12 @@ Halide::Func Parameter121("Parameter121"); Parameter121(var1) = b_Parameter121(v
 auto b_Constant111 = Halide::Buffer<float>(m_Constant111.data(), 1, "Constant111");
 Halide::Func Constant111("Constant111"); Constant111(var1) = b_Constant111(var1);
 
-Halide::Func PastValue112_Constant111("PastValue112_Constant111"); PastValue112_Constant111(var1) = Halide::select(m_timestamp(0) < 1, Constant111(0), PastValue112(var1));;
-Halide::Func ElementTimes141("ElementTimes141"); ElementTimes141 = ElementTimes(Parameter140, PastValue112_Constant111, 1024);
+Halide::Func PastValue112("PastValue112"); PastValue112(var1) = Halide::select(m_timestamp(0) < 1, Constant111(0), OutputPastValue112(var1));;
+Halide::Func ElementTimes141("ElementTimes141"); ElementTimes141 = ElementTimes(Parameter140, PastValue112, 1024);
 auto b_Parameter109 = Halide::Buffer<float>(m_Parameter109.data(), 1024, "Parameter109");
 Halide::Func Parameter109("Parameter109"); Parameter109(var1) = b_Parameter109(var1);
 
-Halide::Func ElementTimes115("ElementTimes115"); ElementTimes115 = ElementTimes(Parameter109, PastValue112_Constant111, 1024);
+Halide::Func ElementTimes115("ElementTimes115"); ElementTimes115 = ElementTimes(Parameter109, PastValue112, 1024);
 auto b_Parameter98 = Halide::Buffer<float>(m_Parameter98.data(), 1024, "Parameter98");
 Halide::Func Parameter98("Parameter98"); Parameter98(var1) = b_Parameter98(var1);
 
@@ -338,7 +338,7 @@ std::vector<Halide::Func> Parameter55 { f_Parameter55, f_step_Parameter55 };
 auto b_Constant81 = Halide::Buffer<float>(m_Constant81.data(), 1, "Constant81");
 Halide::Func Constant81("Constant81"); Constant81(var1) = b_Constant81(var1);
 
-Halide::Func PastValue82_Constant81("PastValue82_Constant81"); PastValue82_Constant81(var1) = Halide::select(m_timestamp(0) < 1, Constant81(0), PastValue82(var1));;
+Halide::Func PastValue82("PastValue82"); PastValue82(var1) = Halide::select(m_timestamp(0) < 1, Constant81(0), OutputPastValue82(var1));;
 auto b_Constant62 = Halide::Buffer<float>(m_Constant62.data(), 80, "Constant62");
 Halide::Func Constant62("Constant62"); Constant62(var1) = b_Constant62(var1);
 
@@ -347,17 +347,17 @@ Halide::Func Constant61("Constant61"); Constant61(var1) = b_Constant61(var1);
 
 Halide::Func Minus66("Minus66"); Minus66 = Minus(features, Constant61, 80);
 Halide::Func ElementTimes69("ElementTimes69"); ElementTimes69 = ElementTimes(Minus66, Constant62, 80);
-Halide::Func Splice85("Splice85"); Splice85 = Splice(ElementTimes69, PastValue82_Constant81, 80, 512);
-std::vector<Halide::Func> Splice85_Times88_quantize; Splice85_Times88_quantize = Quantize<float, short>(Splice85, 592, 3);
+Halide::Func Splice85("Splice85"); Splice85 = Splice(ElementTimes69, PastValue82, 80, 512);
+std::vector<Halide::Func> Splice85_Times88_quantize; Splice85_Times88_quantize = Quantize<float, float>(Splice85, 592, 3);
 Halide::Func Times88("Times88"); Times88 = MatrixByVectorTimesQuantized(Parameter55,Splice85_Times88_quantize,192,592);
-std::vector<Halide::Func> Times88_Times91_quantize; Times88_Times91_quantize = Quantize<float, short>(Times88, 192, 3);
+std::vector<Halide::Func> Times88_Times91_quantize; Times88_Times91_quantize = Quantize<float, float>(Times88, 192, 3);
 Halide::Func Times91("Times91"); Times91 = MatrixByVectorTimesQuantized(Parameter53,Times88_Times91_quantize,4096,192);
 Times91.compute_root();
 Halide::Func Slice105("Slice105"); Slice105 = Slice(Times91, 1024, 2048);
 Halide::Func Plus118("Plus118"); Plus118 = Plus(Slice105, ElementTimes115, 1024);
 Halide::Func Plus122("Plus122"); Plus122 = Plus(Plus118, Parameter121, 1024);
 Halide::Func Sigmoid125("Sigmoid125"); Sigmoid125 = Sigmoid<float>(Plus122);
-Halide::Func ElementTimes128("ElementTimes128"); ElementTimes128 = ElementTimes(Sigmoid125, PastValue112_Constant111, 1024);
+Halide::Func ElementTimes128("ElementTimes128"); ElementTimes128 = ElementTimes(Sigmoid125, PastValue112, 1024);
 Halide::Func Slice136("Slice136"); Slice136 = Slice(Times91, 0, 1024);
 Halide::Func Plus144("Plus144"); Plus144 = Plus(Slice136, ElementTimes141, 1024);
 Halide::Func Plus148("Plus148"); Plus148 = Plus(Plus144, Parameter147, 1024);
@@ -375,20 +375,20 @@ Halide::Func Plus176("Plus176"); Plus176 = Plus(Slice94, ElementTimes173, 1024);
 Halide::Func Plus180("Plus180"); Plus180 = Plus(Plus176, Parameter179, 1024);
 Halide::Func Sigmoid183("Sigmoid183"); Sigmoid183 = Sigmoid<float>(Plus180);
 Halide::Func ElementTimes190("ElementTimes190"); ElementTimes190 = ElementTimes(Sigmoid183, Tanh187, 1024);
-std::vector<Halide::Func> ElementTimes190_Times193_quantize; ElementTimes190_Times193_quantize = Quantize<float, short>(ElementTimes190, 1024, 3);
+std::vector<Halide::Func> ElementTimes190_Times193_quantize; ElementTimes190_Times193_quantize = Quantize<float, float>(ElementTimes190, 1024, 3);
 Halide::Func Times193("Times193"); Times193 = MatrixByVectorTimesQuantized(Parameter46,ElementTimes190_Times193_quantize,512,1024);
 Times193.compute_root();
-Halide::Func Splice201("Splice201"); Splice201 = Splice(Times193, PastValue198_Constant197, 512, 512);
-std::vector<Halide::Func> Splice201_Times204_quantize; Splice201_Times204_quantize = Quantize<float, short>(Splice201, 1024, 3);
+Halide::Func Splice201("Splice201"); Splice201 = Splice(Times193, PastValue198, 512, 512);
+std::vector<Halide::Func> Splice201_Times204_quantize; Splice201_Times204_quantize = Quantize<float, float>(Splice201, 1024, 3);
 Halide::Func Times204("Times204"); Times204 = MatrixByVectorTimesQuantized(Parameter43,Splice201_Times204_quantize,384,1024);
-std::vector<Halide::Func> Times204_Times207_quantize; Times204_Times207_quantize = Quantize<float, short>(Times204, 384, 3);
+std::vector<Halide::Func> Times204_Times207_quantize; Times204_Times207_quantize = Quantize<float, float>(Times204, 384, 3);
 Halide::Func Times207("Times207"); Times207 = MatrixByVectorTimesQuantized(Parameter41,Times204_Times207_quantize,4096,384);
 Times207.compute_root();
 Halide::Func Slice221("Slice221"); Slice221 = Slice(Times207, 1024, 2048);
 Halide::Func Plus234("Plus234"); Plus234 = Plus(Slice221, ElementTimes231, 1024);
 Halide::Func Plus238("Plus238"); Plus238 = Plus(Plus234, Parameter237, 1024);
 Halide::Func Sigmoid241("Sigmoid241"); Sigmoid241 = Sigmoid<float>(Plus238);
-Halide::Func ElementTimes244("ElementTimes244"); ElementTimes244 = ElementTimes(Sigmoid241, PastValue228_Constant227, 1024);
+Halide::Func ElementTimes244("ElementTimes244"); ElementTimes244 = ElementTimes(Sigmoid241, PastValue228, 1024);
 Halide::Func Slice252("Slice252"); Slice252 = Slice(Times207, 0, 1024);
 Halide::Func Plus260("Plus260"); Plus260 = Plus(Slice252, ElementTimes257, 1024);
 Halide::Func Plus264("Plus264"); Plus264 = Plus(Plus260, Parameter263, 1024);
@@ -406,20 +406,20 @@ Halide::Func Plus292("Plus292"); Plus292 = Plus(Slice210, ElementTimes289, 1024)
 Halide::Func Plus296("Plus296"); Plus296 = Plus(Plus292, Parameter295, 1024);
 Halide::Func Sigmoid299("Sigmoid299"); Sigmoid299 = Sigmoid<float>(Plus296);
 Halide::Func ElementTimes306("ElementTimes306"); ElementTimes306 = ElementTimes(Sigmoid299, Tanh303, 1024);
-std::vector<Halide::Func> ElementTimes306_Times309_quantize; ElementTimes306_Times309_quantize = Quantize<float, short>(ElementTimes306, 1024, 3);
+std::vector<Halide::Func> ElementTimes306_Times309_quantize; ElementTimes306_Times309_quantize = Quantize<float, float>(ElementTimes306, 1024, 3);
 Halide::Func Times309("Times309"); Times309 = MatrixByVectorTimesQuantized(Parameter34,ElementTimes306_Times309_quantize,512,1024);
 Times309.compute_root();
-Halide::Func Splice317("Splice317"); Splice317 = Splice(Times309, PastValue314_Constant313, 512, 512);
-std::vector<Halide::Func> Splice317_Times320_quantize; Splice317_Times320_quantize = Quantize<float, short>(Splice317, 1024, 3);
+Halide::Func Splice317("Splice317"); Splice317 = Splice(Times309, PastValue314, 512, 512);
+std::vector<Halide::Func> Splice317_Times320_quantize; Splice317_Times320_quantize = Quantize<float, float>(Splice317, 1024, 3);
 Halide::Func Times320("Times320"); Times320 = MatrixByVectorTimesQuantized(Parameter31,Splice317_Times320_quantize,384,1024);
-std::vector<Halide::Func> Times320_Times323_quantize; Times320_Times323_quantize = Quantize<float, short>(Times320, 384, 3);
+std::vector<Halide::Func> Times320_Times323_quantize; Times320_Times323_quantize = Quantize<float, float>(Times320, 384, 3);
 Halide::Func Times323("Times323"); Times323 = MatrixByVectorTimesQuantized(Parameter29,Times320_Times323_quantize,4096,384);
 Times323.compute_root();
 Halide::Func Slice337("Slice337"); Slice337 = Slice(Times323, 1024, 2048);
 Halide::Func Plus350("Plus350"); Plus350 = Plus(Slice337, ElementTimes347, 1024);
 Halide::Func Plus354("Plus354"); Plus354 = Plus(Plus350, Parameter353, 1024);
 Halide::Func Sigmoid357("Sigmoid357"); Sigmoid357 = Sigmoid<float>(Plus354);
-Halide::Func ElementTimes360("ElementTimes360"); ElementTimes360 = ElementTimes(Sigmoid357, PastValue344_Constant343, 1024);
+Halide::Func ElementTimes360("ElementTimes360"); ElementTimes360 = ElementTimes(Sigmoid357, PastValue344, 1024);
 Halide::Func Slice368("Slice368"); Slice368 = Slice(Times323, 0, 1024);
 Halide::Func Plus376("Plus376"); Plus376 = Plus(Slice368, ElementTimes373, 1024);
 Halide::Func Plus380("Plus380"); Plus380 = Plus(Plus376, Parameter379, 1024);
@@ -437,20 +437,20 @@ Halide::Func Plus408("Plus408"); Plus408 = Plus(Slice326, ElementTimes405, 1024)
 Halide::Func Plus412("Plus412"); Plus412 = Plus(Plus408, Parameter411, 1024);
 Halide::Func Sigmoid415("Sigmoid415"); Sigmoid415 = Sigmoid<float>(Plus412);
 Halide::Func ElementTimes422("ElementTimes422"); ElementTimes422 = ElementTimes(Sigmoid415, Tanh419, 1024);
-std::vector<Halide::Func> ElementTimes422_Times425_quantize; ElementTimes422_Times425_quantize = Quantize<float, short>(ElementTimes422, 1024, 3);
+std::vector<Halide::Func> ElementTimes422_Times425_quantize; ElementTimes422_Times425_quantize = Quantize<float, float>(ElementTimes422, 1024, 3);
 Halide::Func Times425("Times425"); Times425 = MatrixByVectorTimesQuantized(Parameter22,ElementTimes422_Times425_quantize,512,1024);
 Times425.compute_root();
-Halide::Func Splice433("Splice433"); Splice433 = Splice(Times425, PastValue430_Constant429, 512, 512);
-std::vector<Halide::Func> Splice433_Times436_quantize; Splice433_Times436_quantize = Quantize<float, short>(Splice433, 1024, 3);
+Halide::Func Splice433("Splice433"); Splice433 = Splice(Times425, PastValue430, 512, 512);
+std::vector<Halide::Func> Splice433_Times436_quantize; Splice433_Times436_quantize = Quantize<float, float>(Splice433, 1024, 3);
 Halide::Func Times436("Times436"); Times436 = MatrixByVectorTimesQuantized(Parameter19,Splice433_Times436_quantize,448,1024);
-std::vector<Halide::Func> Times436_Times439_quantize; Times436_Times439_quantize = Quantize<float, short>(Times436, 448, 3);
+std::vector<Halide::Func> Times436_Times439_quantize; Times436_Times439_quantize = Quantize<float, float>(Times436, 448, 3);
 Halide::Func Times439("Times439"); Times439 = MatrixByVectorTimesQuantized(Parameter17,Times436_Times439_quantize,4096,448);
 Times439.compute_root();
 Halide::Func Slice453("Slice453"); Slice453 = Slice(Times439, 1024, 2048);
 Halide::Func Plus466("Plus466"); Plus466 = Plus(Slice453, ElementTimes463, 1024);
 Halide::Func Plus470("Plus470"); Plus470 = Plus(Plus466, Parameter469, 1024);
 Halide::Func Sigmoid473("Sigmoid473"); Sigmoid473 = Sigmoid<float>(Plus470);
-Halide::Func ElementTimes476("ElementTimes476"); ElementTimes476 = ElementTimes(Sigmoid473, PastValue460_Constant459, 1024);
+Halide::Func ElementTimes476("ElementTimes476"); ElementTimes476 = ElementTimes(Sigmoid473, PastValue460, 1024);
 Halide::Func Slice484("Slice484"); Slice484 = Slice(Times439, 0, 1024);
 Halide::Func Plus492("Plus492"); Plus492 = Plus(Slice484, ElementTimes489, 1024);
 Halide::Func Plus496("Plus496"); Plus496 = Plus(Plus492, Parameter495, 1024);
@@ -468,17 +468,17 @@ Halide::Func Plus524("Plus524"); Plus524 = Plus(Slice442, ElementTimes521, 1024)
 Halide::Func Plus528("Plus528"); Plus528 = Plus(Plus524, Parameter527, 1024);
 Halide::Func Sigmoid531("Sigmoid531"); Sigmoid531 = Sigmoid<float>(Plus528);
 Halide::Func ElementTimes538("ElementTimes538"); ElementTimes538 = ElementTimes(Sigmoid531, Tanh535, 1024);
-std::vector<Halide::Func> ElementTimes538_Times541_quantize; ElementTimes538_Times541_quantize = Quantize<float, short>(ElementTimes538, 1024, 3);
+std::vector<Halide::Func> ElementTimes538_Times541_quantize; ElementTimes538_Times541_quantize = Quantize<float, float>(ElementTimes538, 1024, 3);
 Halide::Func Times541("Times541"); Times541 = MatrixByVectorTimesQuantized(Parameter10,ElementTimes538_Times541_quantize,512,1024);
 Times541.compute_root();
-std::vector<Halide::Func> Times541_Times544_quantize; Times541_Times544_quantize = Quantize<float, short>(Times541, 512, 3);
+std::vector<Halide::Func> Times541_Times544_quantize; Times541_Times544_quantize = Quantize<float, float>(Times541, 512, 3);
 Halide::Func Times544("Times544"); Times544 = MatrixByVectorTimesQuantized(Parameter8,Times541_Times544_quantize,256,512);
-std::vector<Halide::Func> Times544_Times547_quantize; Times544_Times547_quantize = Quantize<float, short>(Times544, 256, 3);
+std::vector<Halide::Func> Times544_Times547_quantize; Times544_Times547_quantize = Quantize<float, float>(Times544, 256, 3);
 Halide::Func Times547("Times547"); Times547 = MatrixByVectorTimesQuantized(Parameter6,Times544_Times547_quantize,9404,256);
 Halide::Func Plus551("Plus551"); Plus551 = Plus(Times547, Parameter550, 9404);
 Halide::Func Minus559("Minus559"); Minus559 = Minus(Plus551, Log556, 9404);
  
- return Halide::Pipeline({ Minus559/*ScaledLogLikelihood*/, Plus170/*PastValue112*/, Times309/*PastValue198*/, Plus286/*PastValue228*/, Times425/*PastValue314*/, Plus402/*PastValue344*/, Times541/*PastValue430*/, Plus518/*PastValue460*/, Times193/*PastValue82*/ }); 
+ return Halide::Pipeline({ Minus559/*ScaledLogLikelihood*/, Plus170/*InputPastValue112*/, Times309/*InputPastValue198*/, Plus286/*InputPastValue228*/, Times425/*InputPastValue314*/, Plus402/*InputPastValue344*/, Times541/*InputPastValue430*/, Plus518/*InputPastValue460*/, Times193/*InputPastValue82*/ }); 
  }
 
 
@@ -549,14 +549,14 @@ set_parameter55(get_value("Parameter55"));
 set_constant81(get_value("Constant81"));
 set_constant62(get_value("Constant62"));
 set_constant61(get_value("Constant61"));
-m_bufferPastValue460.resize(2, Halide::Buffer<float>(1024));
-m_bufferPastValue430.resize(2, Halide::Buffer<float>(512));
-m_bufferPastValue344.resize(2, Halide::Buffer<float>(1024));
-m_bufferPastValue314.resize(2, Halide::Buffer<float>(512));
-m_bufferPastValue228.resize(2, Halide::Buffer<float>(1024));
-m_bufferPastValue198.resize(2, Halide::Buffer<float>(512));
-m_bufferPastValue112.resize(2, Halide::Buffer<float>(1024));
-m_bufferPastValue82.resize(2, Halide::Buffer<float>(512));
+m_bufferOutputPastValue460.resize(2, Halide::Buffer<float>(1024));
+m_bufferOutputPastValue430.resize(2, Halide::Buffer<float>(512));
+m_bufferOutputPastValue344.resize(2, Halide::Buffer<float>(1024));
+m_bufferOutputPastValue314.resize(2, Halide::Buffer<float>(512));
+m_bufferOutputPastValue228.resize(2, Halide::Buffer<float>(1024));
+m_bufferOutputPastValue198.resize(2, Halide::Buffer<float>(512));
+m_bufferOutputPastValue112.resize(2, Halide::Buffer<float>(1024));
+m_bufferOutputPastValue82.resize(2, Halide::Buffer<float>(512));
 }
 
 void Evaluate(int timestamp, const Halide::ImageParam& features, Halide::Buffer<float>& ScaledLogLikelihood)
@@ -564,24 +564,19 @@ void Evaluate(int timestamp, const Halide::ImageParam& features, Halide::Buffer<
     if(!m_graphInitialized)
     {
         m_timestamp.set(m_bufferTimestamp);
-        m_graph = create_eval_graph(features, m_PastValue112, m_PastValue198, m_PastValue228, m_PastValue314, m_PastValue344, m_PastValue430, m_PastValue460, m_PastValue82);
+        m_graph = create_eval_graph(features, m_OutputPastValue112, m_OutputPastValue198, m_OutputPastValue228, m_OutputPastValue314, m_OutputPastValue344, m_OutputPastValue430, m_OutputPastValue460, m_OutputPastValue82);
         m_graphInitialized = true;
     }
-m_PastValue112.set(m_bufferPastValue112[((timestamp - 1) % m_bufferPastValue112.size())]);
-m_PastValue198.set(m_bufferPastValue198[((timestamp - 1) % m_bufferPastValue198.size())]);
-m_PastValue228.set(m_bufferPastValue228[((timestamp - 1) % m_bufferPastValue228.size())]);
-m_PastValue314.set(m_bufferPastValue314[((timestamp - 1) % m_bufferPastValue314.size())]);
-m_PastValue344.set(m_bufferPastValue344[((timestamp - 1) % m_bufferPastValue344.size())]);
-m_PastValue430.set(m_bufferPastValue430[((timestamp - 1) % m_bufferPastValue430.size())]);
-m_PastValue460.set(m_bufferPastValue460[((timestamp - 1) % m_bufferPastValue460.size())]);
-m_PastValue82.set(m_bufferPastValue82[((timestamp - 1) % m_bufferPastValue82.size())]);
+m_OutputPastValue112.set(m_bufferOutputPastValue112[((timestamp - 1) % m_bufferOutputPastValue112.size())]);
+m_OutputPastValue198.set(m_bufferOutputPastValue198[((timestamp - 1) % m_bufferOutputPastValue198.size())]);
+m_OutputPastValue228.set(m_bufferOutputPastValue228[((timestamp - 1) % m_bufferOutputPastValue228.size())]);
+m_OutputPastValue314.set(m_bufferOutputPastValue314[((timestamp - 1) % m_bufferOutputPastValue314.size())]);
+m_OutputPastValue344.set(m_bufferOutputPastValue344[((timestamp - 1) % m_bufferOutputPastValue344.size())]);
+m_OutputPastValue430.set(m_bufferOutputPastValue430[((timestamp - 1) % m_bufferOutputPastValue430.size())]);
+m_OutputPastValue460.set(m_bufferOutputPastValue460[((timestamp - 1) % m_bufferOutputPastValue460.size())]);
+m_OutputPastValue82.set(m_bufferOutputPastValue82[((timestamp - 1) % m_bufferOutputPastValue82.size())]);
 m_bufferTimestamp(0) = timestamp;
-Halide::Target t;
-t = Halide::get_jit_target_from_environment()
-//.with_feature(Halide::Target::Profile);
-.with_feature(Halide::Target::NoAsserts);
-
-    m_graph.realize({ScaledLogLikelihood, m_bufferPastValue112[timestamp % m_bufferPastValue112.size()], m_bufferPastValue198[timestamp % m_bufferPastValue198.size()], m_bufferPastValue228[timestamp % m_bufferPastValue228.size()], m_bufferPastValue314[timestamp % m_bufferPastValue314.size()], m_bufferPastValue344[timestamp % m_bufferPastValue344.size()], m_bufferPastValue430[timestamp % m_bufferPastValue430.size()], m_bufferPastValue460[timestamp % m_bufferPastValue460.size()], m_bufferPastValue82[timestamp % m_bufferPastValue82.size()]}, t);
+    m_graph.realize({ScaledLogLikelihood, m_bufferOutputPastValue112[timestamp % m_bufferOutputPastValue112.size()], m_bufferOutputPastValue198[timestamp % m_bufferOutputPastValue198.size()], m_bufferOutputPastValue228[timestamp % m_bufferOutputPastValue228.size()], m_bufferOutputPastValue314[timestamp % m_bufferOutputPastValue314.size()], m_bufferOutputPastValue344[timestamp % m_bufferOutputPastValue344.size()], m_bufferOutputPastValue430[timestamp % m_bufferOutputPastValue430.size()], m_bufferOutputPastValue460[timestamp % m_bufferOutputPastValue460.size()], m_bufferOutputPastValue82[timestamp % m_bufferOutputPastValue82.size()]});
 }
 
 private:
@@ -657,21 +652,21 @@ Halide::Pipeline m_graph;
 bool m_graphInitialized {false};
 Halide::Buffer<int> m_bufferTimestamp { 1 };
 Halide::ImageParam m_timestamp { Halide::type_of<int>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue112;
-Halide::ImageParam m_PastValue112 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue198;
-Halide::ImageParam m_PastValue198 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue228;
-Halide::ImageParam m_PastValue228 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue314;
-Halide::ImageParam m_PastValue314 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue344;
-Halide::ImageParam m_PastValue344 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue430;
-Halide::ImageParam m_PastValue430 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue460;
-Halide::ImageParam m_PastValue460 { Halide::type_of<float>(), 1 };
-std::vector<Halide::Buffer<float>> m_bufferPastValue82;
-Halide::ImageParam m_PastValue82 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue112;
+Halide::ImageParam m_OutputPastValue112 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue198;
+Halide::ImageParam m_OutputPastValue198 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue228;
+Halide::ImageParam m_OutputPastValue228 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue314;
+Halide::ImageParam m_OutputPastValue314 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue344;
+Halide::ImageParam m_OutputPastValue344 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue430;
+Halide::ImageParam m_OutputPastValue430 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue460;
+Halide::ImageParam m_OutputPastValue460 { Halide::type_of<float>(), 1 };
+std::vector<Halide::Buffer<float>> m_bufferOutputPastValue82;
+Halide::ImageParam m_OutputPastValue82 { Halide::type_of<float>(), 1 };
 };
 };

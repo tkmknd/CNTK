@@ -14,11 +14,10 @@ import networkx as nx
 
 class QuantizeNode(Node):
     def __init__(self, graph, name, shape, dtype):
-        super(QuantizeNode, self).__init__(graph, name, shape)
+        super(QuantizeNode, self).__init__(graph, id=name, shape=shape)
         self.name = name
         self.op_name = 'Quantize'
-        self.shape = shape
-        self.dtype = dtype
+        self.type = dtype
 
 class OperationQuantizer(EmptyNodeVisitor):
     '''
@@ -45,15 +44,16 @@ class OperationQuantizer(EmptyNodeVisitor):
 
     def quantize_times(self, node):
         node.quantize = True
-        for p in node.predecessors:
-            node_name = p + '_' + node.id + '_quantize'
-            self.graph.add_node(QuantizeNode(name=node_name, shape=p.shape, dtype=p.dtype))
-            self.graph.add_edge(p, node_name, order=0)
-            self.graph.add_edge(node_name, node.uid, order=self.graph.get_edge_data(p, node)['order'])
-            self.graph.remove_edge(p, node)
+        for pred in node.predecessors:
+            node_name = pred.id + '_' + node.id + '_quantize'
+            qnode = QuantizeNode(self.graph, name=node_name, shape=pred.shape, dtype=pred.type)
+            self.graph.add_node(qnode)
+            self.graph.add_edge(pred, qnode, order=0)
+            self.graph.add_edge(qnode, node, order=self.graph.get_edge_data(pred, node)['order'])
+            self.graph.remove_edge(pred, node)
 
     def visit_parameter(self, node):
-        successors = self.graph.successors(node)
+        successors = node.successors
         all_quantized = (sum([0 if isinstance(s, QuantizeNode) else 1 for s in successors]) == 0)
         if not all_quantized:
             return
@@ -63,6 +63,6 @@ class OperationQuantizer(EmptyNodeVisitor):
 
         # Remove all quantization nodes after it.
         for s in successors:
-            for grand in self.graph.successors(s):
+            for grand in s.successors:
                 self.graph.add_edge(node, grand, order=self.graph.get_edge_data(s, grand)['order'])
             self.graph.remove_node(s)

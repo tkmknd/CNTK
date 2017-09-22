@@ -38,10 +38,10 @@ class WeightsExtractor(EmptyNodeVisitor):
             json.dump(self.weights, f)
 
     def visit_parameter(self, node):
-        self.weights[node.uid] = [float(f) for f in np.transpose(node.as_parameter().value).flatten()]
+        self.weights[node.id] = [float(f) for f in np.transpose(node.model.as_parameter().value).flatten()]
 
     def visit_constant(self, node):
-        self.weights[node.uid] = [float(f) for f in np.transpose(node.as_constant().value).flatten()]
+        self.weights[node.id] = [float(f) for f in np.transpose(node.model.as_constant().value).flatten()]
 
 class CppNamespaceGen:
     '''
@@ -139,11 +139,12 @@ class HalideExpressionGenerator(NodeVisitor):
     def generate(self, nodes, class_name):
         self.visit(nodes)
 
-        past_inputs = [i[1] for i in self.inputs if i[0]]
-        actual_inputs = [i[1] for i in self.inputs if not i[0]] 
+        past_inputs = ['%s' % i[1].name for i in self.inputs if i[0]]
+        actual_inputs = ['%s' % i[1].name if i[1].name else i[1].id for i in self.inputs if not i[0]] 
 
         all_params = list(sorted(actual_inputs))
         all_params.extend(sorted(past_inputs))
+
         all_params = ', '.join(['const Halide::ImageParam& %s' % p for p in all_params])
 
         # Generating the class with setters for weights and constants. 
@@ -180,27 +181,26 @@ class HalideExpressionGenerator(NodeVisitor):
         return self.generate_file_header() + str(nspace)
 
     def generate_eval_method(self, evaluator):
-        past_inputs = [(i[1], i[2]) for i in self.inputs if i[0]]
-        past_inputs = list(sorted(past_inputs, key=lambda x: x[0]))
+        past_inputs = [i[1] for i in self.inputs if i[0]]
+        past_inputs = list(sorted(past_inputs, key=lambda n: n.name))
 
-        for i in past_inputs:
-            node = i[1]
+        for node in past_inputs:
             evaluator.add_private_member('std::vector<Halide::Buffer<%s>> m_buffer%s;' % (self.data_type(node), node.name))
             evaluator.add_private_member('Halide::ImageParam m_%s { Halide::type_of<%s>(), %d };' % (node.name, self.data_type(node), len(node.shape)))
 
         content = ''
-        past_outputs = [o for o in self.outputs if o[0]]
-        past_outputs = list(sorted(past_outputs, key=lambda x: x[0]))
+        past_outputs = [o[1] for o in self.outputs if o[0]]
+        past_outputs = list(sorted(past_outputs, key=lambda n: n.name))
         
-        actual_inputs = [(i[1], i[2]) for i in self.inputs if not i[0]]
-        actual_inputs = list(sorted(actual_inputs, key=lambda x: x[0]))
-        actual_inputs = ['%s' % p[0] for p in actual_inputs]
-        input_params = actual_inputs + ['m_%s' % p[0] for p in past_inputs]
+        actual_inputs = ['%s' % i[1].name if i[1].name else i[1].id for i in self.inputs if not i[0]]
+        actual_inputs = list(sorted(actual_inputs))
 
-        actual_outputs = [(o[1], o[2]) for o in self.outputs if not o[0]]
-        actual_outputs = list(sorted(actual_outputs, key=lambda x: x[0]))
-        actual_outputs = [p[0] for p in actual_outputs]
-        output_params = actual_outputs + ['m_buffer%s[timestamp %% m_buffer%s.size()]' % (p[0], p[0]) for p in past_inputs]
+        input_params = actual_inputs + ['m_%s' % p.name for p in past_inputs]
+
+        actual_outputs = ['%s' % o[1].name if o[1].name else o[1].id for o in self.outputs if not o[0]]
+        actual_outputs = list(sorted(actual_outputs))
+
+        output_params = actual_outputs + ['m_buffer%s[timestamp %% m_buffer%s.size()]' % (p.name, p.name) for p in past_inputs]
 
         content += 'void Evaluate(%s %s, %s)\n' % ('' if len(past_inputs) == 0 else 'int timestamp,', 
                                                    ', '.join(['const Halide::ImageParam& ' + i for i in actual_inputs]),
@@ -214,7 +214,7 @@ class HalideExpressionGenerator(NodeVisitor):
         content += '    }\n'
 
         for p in past_inputs:
-            content += 'm_%s.set(m_buffer%s[((timestamp - %d) %% m_buffer%s.size())]);\n' % (p[0], p[0], p[1].original.attributes['offset'], p[0])
+            content += 'm_%s.set(m_buffer%s[((timestamp - %d) %% m_buffer%s.size())]);\n' % (p.name, p.name, p.original.attributes['offset'], p.name)
 
         if len(past_inputs) != 0:
             content += 'm_bufferTimestamp(0) = timestamp;\n'
@@ -243,41 +243,36 @@ class HalideExpressionGenerator(NodeVisitor):
             content += 'set_%s(get_value("%s"));\n' % (node.id.lower(), node.id)
 
         # Initializing the past value input buffers.
-        past_inputs = [(i[1], i[2]) for i in self.inputs if i[0]]
-        for pi in past_inputs:
-            input_node = pi[1]
-            past_node = pi[1].original
-            content += 'm_buffer%s.resize(%d, Halide::Buffer<%s>(%s));\n' % (pi[0].id, past_node.attributes['offset'] + 1, self.data_type(input_node), ','.join(input_node.cm_shape))
+        past_inputs = [i[1] for i in self.inputs if i[0]]
+        for node in past_inputs:
+            past_node = node.original
+            content += 'm_buffer%s.resize(%d, Halide::Buffer<%s>(%s));\n' % (node.name, past_node.attributes['offset'] + 1, self.data_type(node), ','.join(node.cm_shape))
         content += '}\n'
         return content
 
     def visit_parameter(self, node):
-        node = node.as_parameter()
         exp = self.generate_value(node)
         self.listing += exp + '\n\n'
-        self.id_to_exp[node.uid] = '%s' % node.id
+        self.id_to_exp[node.id] = '%s' % node.id
 
     def visit_constant(self, node):
-        node = node.as_constant()
         exp = self.generate_value(node)
         self.listing += exp + '\n\n'
         self.id_to_exp[node.id] = '%s' % node.id
 
     def visit_input(self, node):
         is_past_value = node.original is not None
-        input_name = '%s' % (node.name if node.name else node.uid)
-        self.uid_to_exp[node.uid] = '%s' % input_name
-        # Is past value and the name of the input (name??uid)
-        self.inputs.append((is_past_value, input_name, node.uid))
+        name = '%s' % (node.name if node.name else node.id)
+        self.id_to_exp[node.id] = '%s' % name
+        self.inputs.append((is_past_value, node))
 
     def visit_output(self, node):
         operands = node.predecessors
         is_past_value = node.original is not None
         if len(operands) != 1:
             raise ValueError('Output value is expected to have a single operand, given %s' % str(operands))
-        name = node.name if node.name else node.uid
-        # is past value, (name??uid) of the node, uid of the actual expression
-        self.outputs.append((is_past_value, name, operands[0], node.uid))
+        self.id_to_exp[node.id] = '%s' % operands[0].id
+        self.outputs.append((is_past_value, node))
 
     def index_vars(self, node):
         if len(node.shape) == 1 or len(node.shape) == 0:
@@ -308,16 +303,16 @@ class HalideExpressionGenerator(NodeVisitor):
             self.generate_tanh(node)
         elif op_name == 'ElementTimes':
             self.generate_element_times(node)
+        elif op_name == 'PastValue':
+            self.generate_past_state_selector(node)
         else:
             set_trace()
             raise ValueError('Not implemented function %s' % node.op_name)
-        self.id_to_exp[node.uid] = '%s' % node.id
+        self.id_to_exp[node.id] = '%s' % node.id
 
     def visit_node(self, node):
         if node.op_name == 'Quantize':
             self.generate_quantization(node)
-        elif node.op_name == 'PastValue':
-            self.generate_past_state_selector(node)
         else:
             raise ValueError('Unexpected node' % node)
         self.id_to_exp[node.id] = '%s' % node.id
@@ -328,23 +323,23 @@ class HalideExpressionGenerator(NodeVisitor):
             raise ValueError('Operation "quantize" expects 1 operand, given %s', str(operands))
         shape = node.shape if len(node.shape) > 0 else (1,)
         shape_arg = '%d, %d' % (shape[0], shape[1]) if len(shape) == 2 else '%d' % shape[0]
-        exp = 'std::vector<Halide::Func> %s; %s = Quantize<%s, %s>(%s, %s, %d)' % tuple([node.id, node.id, node.type(), self.data_type(node), 
-                                                                                        self.id_to_exp[operands[0]], shape_arg, self.reserved_bits] )
+        exp = 'std::vector<Halide::Func> %s; %s = Quantize<%s, %s>(%s, %s, %d)' % tuple([node.id, node.id, node.type, self.data_type(node), 
+                                                                                        self.id_to_exp[operands[0].id], shape_arg, self.reserved_bits])
         self.listing += exp + ';\n'
 
     def generate_binary_call(self, node, op_name):
         operands = node.predecessors
         if len(operands) != 2:
             raise ValueError('Operation "%s" expects 2 operands, given %s', op_name, str(operands))
-        exp = 'Halide::Func %s("%s"); %s = %s(%s, %s, %d)' % tuple([node.id, node.id, node.id, op_name] + [self.id_to_exp[o] for o in operands] + [self.total_num_elements(node.shape)])
-        if len(self.graph.successors(node)) > 1: # Make sure we do not recalculate the same values twice.
+        exp = 'Halide::Func %s("%s"); %s = %s(%s, %s, %d)' % tuple([node.id, node.id, node.id, op_name] + [self.id_to_exp[o.id] for o in operands] + [self.total_num_elements(node.shape)])
+        if len(node.successors) > 1: # Make sure we do not recalculate the same values twice.
             exp += ';\n%s.compute_root()' % node.id
         self.listing += exp + ';\n'
 
     def generate_call(self, node, op_name, operands):
         str_operands = ','.join(operands)
         exp = 'Halide::Func %s("%s"); %s = %s(%s)' % tuple([node.id, node.id, node.id, op_name, str_operands])
-        if len(self.graph.successors(node.id)) > 1: # Make sure we do not recalculate the same values twice.
+        if len(node.successors) > 1: # Make sure we do not recalculate the same values twice.
             exp += ';\n%s.compute_root()' % node.id
         self.listing += exp + ';\n'
 
@@ -352,28 +347,27 @@ class HalideExpressionGenerator(NodeVisitor):
         operands = node.predecessors
         if len(operands) != 1:
             raise ValueError('Operation "%s" expects 1 operand, given %s', op_name, str(operands))
-        exp = 'Halide::Func %s("%s"); %s = %s(%s)' % tuple([node.id, node.id, node.id, op_name, self.id_to_exp[operands[0]]])
-        if len(self.graph.successors(node.uid)) > 1: # Make sure we do not recalculate the same values twice.
-            exp += ';\n%s.compute_root()' % node.uid
+        exp = 'Halide::Func %s("%s"); %s = %s(%s)' % tuple([node.id, node.id, node.id, op_name, self.id_to_exp[operands[0].id]])
+        if len(node.successors) > 1: # Make sure we do not recalculate the same values twice.
+            exp += ';\n%s.compute_root()' % node.id
         self.listing += exp + ';\n'
 
     def generate_times(self, node):
-        operands = get_predecessors(self.graph, node.uid)
-        node_attrs = self.graph.node[node.uid]
+        operands = node.predecessors
         if len(operands) != 2:
             raise ValueError('Expecting 2 operands')
-        vector = self.graph.node[operands[0]]['data']
+        vector = operands[0]
         if len(vector.shape) != 0 and len(vector.shape) != 1:
             set_trace()
             raise ValueError("Times is currently supported only for 1D * 2D, given %s" % str(vector.shape))
 
-        matrix = self.graph.node[operands[1]]['data']
+        matrix = operands[1]
         shape = matrix.shape if len(matrix.shape) > 0 else (1,)        
 
         op_name = 'MatrixByVectorTimes'
-        if 'quantized' in self.graph.node[node.uid]:
+        if node.quantize:
             op_name += 'Quantized'
-        self.generate_call(node, op_name, [self.uid_to_exp[o] for o in reversed(operands)] + [str(shape[1]), str(shape[0])])
+        self.generate_call(node, op_name, [self.id_to_exp[o.id] for o in reversed(operands)] + [str(shape[1]), str(shape[0])])
 
     def generate_element_times(self, node):
         self.generate_binary_call(node, 'ElementTimes')
@@ -394,37 +388,36 @@ class HalideExpressionGenerator(NodeVisitor):
         self.generate_unary_call(node, 'Log')
 
     def generate_slice(self, node):
-        operand = get_predecessors(self.graph, node.uid)
-        if len(operand) != 1:
+        if len(node.predecessors) != 1:
             set_trace()
             raise ValueError('Operation "slice" expects 1 operand')
-        operand = self.graph.node[operand[0]]['data']
+        operand = node.predecessors[0]
         if len(operand.shape) == 1:
-            begin = node.attributes['beginIndex']
-            end = node.attributes['endIndex']
-            if 'sliceStrides' in node.attributes and node.attributes['sliceStrides'] != 1:
+            begin = node.model.attributes['beginIndex']
+            end = node.model.attributes['endIndex']
+            if 'sliceStrides' in node.model.attributes and node.model.attributes['sliceStrides'] != 1:
                 set_trace()
-                raise ValueError('Unexpected stride "%s", only stride of 1 is currently supported' % str(node.attributes['sliceStrides']))
-            exp = 'Halide::Func %s("%s"); %s = Slice(%s, %d, %d)' % (node.uid, node.uid, node.uid, self.uid_to_exp[operand.uid], begin, end)
+                raise ValueError('Unexpected stride "%s", only stride of 1 is currently supported' % str(node.model.attributes['sliceStrides']))
+            exp = 'Halide::Func %s("%s"); %s = Slice(%s, %d, %d)' % (node.id, node.id, node.id, self.id_to_exp[operand.id], begin, end)
         else:
             raise ValueError('Slice is not supported on node of shape %s' % str(node.shape)) 
-        if len(self.graph.successors(node.uid)) > 1: # Make sure we do not recalculate the same values twice.
-            exp += ';\n%s.compute_root()' % node.uid
+        if len(node.successors) > 1: # Make sure we do not recalculate the same values twice.
+            exp += ';\n%s.compute_root()' % node.id
         self.listing += exp + ';\n'
 
     def generate_splice(self, node):
-        operands = get_predecessors(self.graph, node.uid)
+        operands = node.predecessors
         if len(operands) != 2:
             raise ValueError('Operation "splice" expects 2 operands')
-        operand1 = self.graph.node[operands[0]]['data']
-        operand2 = self.graph.node[operands[1]]['data']
+        operand1 = operands[0]
+        operand2 = operands[1]
         if len(operand1.shape) != 1 or len(operand2.shape) != 1:
             raise ValueError('Currently splice only supports vectors as operands')
 
-        exp = 'Halide::Func %s("%s"); %s = Splice(%s, %s, %d, %d)' % (node.uid, node.uid, node.uid, self.uid_to_exp[operand1.uid],
-                                                                      self.uid_to_exp[operand2.uid], operand1.shape[0], operand2.shape[0])
-        if len(self.graph.successors(node.uid)) > 1: # Make sure we do not recalculate the same values twice.
-            exp += ';\n%s.compute_root()' % node.uid
+        exp = 'Halide::Func %s("%s"); %s = Splice(%s, %s, %d, %d)' % (node.id, node.id, node.id, self.id_to_exp[operand1.id],
+                                                                      self.id_to_exp[operand2.id], operand1.shape[0], operand2.shape[0])
+        if len(node.successors) > 1: # Make sure we do not recalculate the same values twice.
+            exp += ';\n%s.compute_root()' % node.id
         self.listing += exp + ';\n'
 
     def generate_file_header(self):
@@ -441,12 +434,12 @@ class HalideExpressionGenerator(NodeVisitor):
         return header;
 
     def generate_return_value(self):
-        past_outputs = [o for o in self.outputs if o[0]]
-        actual_outputs = [o for o in self.outputs if not o[0]]
+        past_outputs = [o[1] for o in self.outputs if o[0]]
+        actual_outputs = [o[1] for o in self.outputs if not o[0]]
         # Sorting by name
-        all_outputs = list(sorted(actual_outputs, key = lambda x: x[1]))
-        all_outputs.extend(sorted(past_outputs, key = lambda x: x[1]))
-        return 'return Halide::Pipeline({ %s });' % ', '.join(['%s/*%s*/' % (o[2], o[1]) for o in all_outputs])
+        all_outputs = list(sorted(actual_outputs, key = lambda n: n.name if n.name else n.id))
+        all_outputs.extend(sorted(past_outputs, key = lambda n: n.name))
+        return 'return Halide::Pipeline({ %s });' % ', '.join(['%s/*%s*/' % (self.id_to_exp[o.id], o.name if o.name else o.id) for o in all_outputs])
 
     def data_type(self, node):
         if node.quantize:
@@ -457,7 +450,7 @@ class HalideExpressionGenerator(NodeVisitor):
             else:
                 raise ValueError('Unsupported number of total quantized bits.')
         else:
-            return node.type()
+            return node.type
 
     def total_num_elements(self, shape):
         return shape[0] if len(shape) == 1 else 1 if len(shape) == 0 else functools.reduce(lambda x, y: x*y, shape)
@@ -465,30 +458,30 @@ class HalideExpressionGenerator(NodeVisitor):
     def generate_value(self, node):
         type = self.data_type(node)
         if len(node.shape) == 2:
-            expression = 'auto b_%s = Halide::Buffer<%s>(m_%s.data(), %s, %s, "%s");\n' % (node.uid, type, node.uid, node.shape[0], node.shape[1], node.uid)
+            expression = 'auto b_%s = Halide::Buffer<%s>(m_%s.data(), %s, %s, "%s");\n' % (node.id, type, node.id, node.shape[0], node.shape[1], node.id)
         elif len(node.shape) == 1:
-            expression = 'auto b_%s = Halide::Buffer<%s>(m_%s.data(), %s, "%s");\n' % (node.uid, type, node.uid, node.shape[0], node.uid)
+            expression = 'auto b_%s = Halide::Buffer<%s>(m_%s.data(), %s, "%s");\n' % (node.id, type, node.id, node.shape[0], node.id)
         elif len(node.shape) == 0: # Scalar represent as array
-            expression = 'auto b_%s = Halide::Buffer<%s>(m_%s.data(), %s, "%s");\n' % (node.uid, type, node.uid, 1, node.uid)
+            expression = 'auto b_%s = Halide::Buffer<%s>(m_%s.data(), %s, "%s");\n' % (node.id, type, node.id, 1, node.id)
         else:
             set_trace()
             raise ValueError('Unexpected shape encountered, only 1 and 2D are currently supported %s' % node)
         
-        if 'quantized' not in self.graph.node[node.uid]:
-            expression += 'Halide::Func %s("%s"); %s(%s) = b_%s(%s);' % (node.uid, node.uid, node.uid, self.index_vars(node), node.uid, self.index_vars(node))
+        if not node.quantize:
+            expression += 'Halide::Func %s("%s"); %s(%s) = b_%s(%s);' % (node.id, node.id, node.id, self.index_vars(node), node.id, self.index_vars(node))
         else:
-            expression += 'Halide::Func f_%s("f_%s"); f_%s(%s) = b_%s(%s);\n' % (node.uid, node.uid, node.uid, self.index_vars(node), node.uid, self.index_vars(node))
-            expression += 'Halide::Func f_step_%s("f_step_%s"); f_step_%s() = m_step_%s;\n' % (node.uid, node.uid, node.uid, node.uid)
-            expression += 'std::vector<Halide::Func> %s { f_%s, f_step_%s };\n' % (node.uid, node.uid, node.uid)
+            expression += 'Halide::Func f_%s("f_%s"); f_%s(%s) = b_%s(%s);\n' % (node.id, node.id, node.id, self.index_vars(node), node.id, self.index_vars(node))
+            expression += 'Halide::Func f_step_%s("f_step_%s"); f_step_%s() = m_step_%s;\n' % (node.id, node.id, node.id, node.id)
+            expression += 'std::vector<Halide::Func> %s { f_%s, f_step_%s };\n' % (node.id, node.id, node.id)
         self.values.append(node)
         return expression
 
     def generate_past_state_selector(self, node):
-        operands = get_predecessors(self.graph, node.uid)
+        operands = node.predecessors
         if len(operands) != 2:
             raise ValueError('Selection of past state expects 2 operands, given %s', str(operands))
-        input = self.model_node(operands[0])
-        state = self.model_node(operands[1])
+        input = operands[0].model
+        state = operands[1].model
         is_same_shape = input.shape == state.shape
         if not is_same_shape and len(state.shape) != 0:
             raise ValueError('Shape of the past value node does not match the shape of the state. Implicit broadcasting is currently not supported.')
@@ -497,9 +490,9 @@ class HalideExpressionGenerator(NodeVisitor):
             raise ValueError('Selection of past value state is currenlty supported only for vectors.')
 
         shape = node.shape if len(node.shape) > 0 else (1,)
-        exp = 'Halide::Func %s("%s"); %s(var1) = Halide::select(m_timestamp(0) < %d, %s(%s), %s(var1));' % (node.uid, node.uid, node.uid, 
-                                                                                                            self.model_original_node(node.uid).attributes['offset'], 
-                                                                                                            self.uid_to_exp[operands[1]], 
+        exp = 'Halide::Func %s("%s"); %s(var1) = Halide::select(m_timestamp(0) < %d, %s(%s), %s(var1));' % (node.id, node.id, node.id, 
+                                                                                                            node.model.attributes['offset'], 
+                                                                                                            self.id_to_exp[operands[1].id], 
                                                                                                             'var1' if is_same_shape else '0',
-                                                                                                            self.uid_to_exp[operands[0]])
+                                                                                                            self.id_to_exp[operands[0].id])
         self.listing += exp + ';\n'

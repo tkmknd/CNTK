@@ -28,9 +28,17 @@ class Node:
     def id(self):
         return self._id
 
+    @id.setter
+    def id(self, value):
+        self._id = value
+
     @property
     def shape(self):
         return self._shape
+
+    @shape.setter
+    def shape(self, value):
+        self._shape = value
 
     @property
     def cm_shape(self):
@@ -63,6 +71,10 @@ class Node:
         ordered = sorted(ordered, key=lambda o: o[1])
         return [o[0] for o in ordered]
 
+    @property
+    def successors(self):
+        return self.graph.successors(self)
+
     def __hash__(self):
         return hash(self.id)
 
@@ -78,6 +90,10 @@ class ModelNode(Node):
     @property
     def original(self):
         return self.original_model_node
+
+    @original.setter
+    def original(self, value):
+        self.original_model_node = value
 
     @property
     def model(self):
@@ -110,7 +126,7 @@ class ModelNode(Node):
 
     @property
     def is_function(self):
-        return isinstance(self.model_node, cntk.variables.Function)
+        return isinstance(self.model_node, cntk_py.Function)
 
     @property
     def is_output(self):
@@ -126,7 +142,7 @@ class ModelNode(Node):
 
     @property
     def is_parameter(self):
-        return self.model_nodel.is_parameter
+        return self.model_node.is_parameter
 
     @property
     def is_constant(self):
@@ -190,7 +206,7 @@ class ModelToGraphConverter:
         for n in g.nodes():
             if n.id == id:
                 return n
-        raise ValueError('Node %s is not found' % id)
+        return None
 
     def _convert(self, g, node, child, order, visited, placeholder_mapping):
         from cntk import cntk_py
@@ -200,11 +216,12 @@ class ModelToGraphConverter:
         # skipping blocks if needed
         # BUGBUG: Two nested blocks is probably not supported?
         if child is not None:
-            if not g.has_node(child.uid):
+            if not self.get_node_by_id(g, child.uid):
                 g.add_node(ModelNode(g, child))
             cur = dict(node.block_outputs_mapping)[child] if is_function and node.is_block else node
-            if not g.has_node(cur.uid):
+            if not self.get_node_by_id(g, cur.uid):
                 g.add_node(ModelNode(g, cur))
+
             # Unfortunately, nx does not preserve the order of edges, so we need
             # to remember the order in which edges are added because order of parameters
             # to a CNTK function matters.
@@ -272,9 +289,8 @@ def remove_intermediate_output_nodes(graph):
             removed = True
 
 class PastStateSelectorNode(ModelNode):
-    def __init__(self, graph, model_node, name):
+    def __init__(self, graph, model_node):
         super(PastStateSelectorNode, self).__init__(graph, model_node)
-        self.name = name
 
 def split_past_values(graph):
     '''
@@ -283,12 +299,12 @@ def split_past_values(graph):
     Args:
         graph: nx model graph
     '''
-    for node in graph.nodes():
+    nodes = list(graph.nodes())
+    for node in nodes:
         if not node.is_function or node.op_name != 'PastValue':
             continue
-
-        external_output = ModelNode(graph, cntk.output_variable(dynamic_axes=node.dynamic_axes, shape=node.shape, dtype=node.dtype, name=node.uid), node.model)
-        external_input = ModelNode(graph, cntk.input_variable(dynamic_axes=node.dynamic_axes, shape=node.shape, dtype=node.dtype, name=node.uid), node.model)
+        external_output = ModelNode(graph, cntk.output_variable(dynamic_axes=node.dynamic_axes, shape=node.shape, dtype=node.dtype, name='Input' + node.id), node.model)
+        external_input = ModelNode(graph, cntk.input_variable(dynamic_axes=node.dynamic_axes, shape=node.shape, dtype=node.dtype, name='Output' + node.id), node.model)
 
         graph.add_node(external_input)
         graph.add_node(external_output)
@@ -296,20 +312,19 @@ def split_past_values(graph):
         if len(node.predecessors) != 2:
             raise ValueError('Past value is expected to have two operands')
 
-        state = graph.node[predecessors[1]]
+        state = node.predecessors[1]
         if not state.is_constant:
             raise ValueError('Currently only constant initial state of past values is supported')
-
         state.original = node.model
 
-        state_selector = PastStateSelectorNode(graph, state.original, external_input.name + '_' + state.uid)
+        state_selector = PastStateSelectorNode(graph, state.original)
         graph.add_node(state_selector)
 
         graph.add_edge(external_input, state_selector, order = 0)
         graph.add_edge(state, state_selector, order = 1)
 
-        for successor in graph.successors(node):
+        for successor in node.successors:
             graph.add_edge(state_selector, successor, order = graph.get_edge_data(node, successor)['order'])
 
-        graph.add_edge(predecessors[0], external_output, order = 0)
+        graph.add_edge(node.predecessors[0], external_output, order = 0)
         graph.remove_node(node)
